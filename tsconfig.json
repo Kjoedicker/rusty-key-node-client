@@ -1,11 +1,15 @@
 {
   "compilerOptions": {
         "target": "esnext",
+        "outDir": "./built",
         "allowJs": true,
         "module": "commonjs",
         "esModuleInterop": true,
         "forceConsistentCasingInFileNames": true,
         "strict": true,
         "skipLibCheck": true,
-    }
+    },
+    "include": [
+        "./**/*"
+    ],
 }
