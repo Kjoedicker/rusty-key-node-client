@@ -1,107 +1,100 @@
-import axios, { AxiosInstance } from 'axios';
+import axios, {type AxiosInstance} from 'axios';
 import assert from 'assert';
-import { interpolateStringKey } from './functional-utils';
+import {interpolateStringKey} from './functional-utils';
 
-type callMethods = {
-    [key: string]: string[]
-}
-type Response = {
-    [key: string]: any
-}
-type Value = any;
+type CallMethods = Record<string, string[]>;
+type Response = Record<string, any>;
+type Value = string | number;
 type Key = string | number;
 
 class RustyKeyClient {
-    baseURL: string;
-    timeout: number;
-    client: AxiosInstance;
+	baseUrl: string;
+	timeout: number;
+	client: AxiosInstance;
 
-    #methods: callMethods = {
-        setKey:    ['POST',   '/{key}/{value}'],
-        getKey:    ['GET',    '/{key}'        ],
-        deleteKey: ['DELETE', '/{key}'        ]
-    }
+	#methods: CallMethods = {
+		setKey: ['POST', '/{key}/{value}'],
+		getKey: ['GET', '/{key}'],
+		deleteKey: ['DELETE', '/{key}'],
+	};
 
-    constructor (
-        baseURL?: string,  
-        timeout?: number 
-    ) {
-        this.baseURL = baseURL || 'http://localhost:8080';
-        this.timeout = timeout || 5000;
-        this.client  = axios.create({
-            baseURL: this.baseURL,
-            timeout: this.timeout
-        });
-    }
+	constructor(
+		baseURL?: string,
+		timeout?: number,
+	) {
+		this.baseUrl = baseURL ?? 'http://localhost:8080';
+		this.timeout = timeout ?? 5000;
+		this.client = axios.create({
+			baseURL: this.baseUrl,
+			timeout: this.timeout,
+		});
+	}
 
-    async _call(method: string, url: string): Promise<Response| boolean>{
-        assert(method, '_call(): requires method');
-        assert(url,    '_call(): requires url');
+	async _call(method: string, url: string): Promise<Response | boolean> {
+		assert(method, '_call(): requires method');
+		assert(url, '_call(): requires url');
 
-        try {
-            const response = 
-                await this.client({
-                    method,
-                    url,   
-                });
-            
-            const { status, data } = response;
+		try {
+			const response = await this.client({method, url});
 
-            return { status, data };
-        } catch(err: any) {
-            const { status, data } = err?.response || {};
-    
-            switch (status) {
-                case 404: {
-                    return { status, data }
-                }
-                default: {
-                    console.error(`[ERROR] making ${method} to ${url}: ` + JSON.stringify(err))   
-                    return false;
-                }
-            }
-        }
-    }
+			const { status, data} = response || {};
 
-    async _callMethod(action: string, values: object) {
-        assert(action, '_callMethod(): requires action');
-        assert(values, '_callMethod(): requires values');
+			return {status, data};
+		} catch (err: any) {
+			const {status, data} = err?.response ?? {};
 
-        const 
-            [httpMethod, path] = this.#methods[action],
-            url = interpolateStringKey(path, values)
+			switch (status) {
+				case 404: {
+					return {status, data};
+				}
+
+				default: {
+					console.error(`[ERROR] making ${method} to ${url}: ` + JSON.stringify(err));
+					return false;
+				}
+			}
+		}
+	}
+
+	async _callMethod(action: string, values: Record<string, unknown>) {
+		assert(action, '_callMethod(): requires action');
+		assert(values, '_callMethod(): requires values');
+
+		const
+			[httpMethod, path] = this.#methods[action],
+		    url = interpolateStringKey(path, values)
         ;
+    
+		return this._call(httpMethod, url);
+	}
 
-        return this._call(httpMethod, url);
-    }
+	async set(key: Key, value: Value) {
+		assert(key, 'set(): requires key');
+		assert(value, 'set(): requires value');
 
-    async set (key: Key, value: Value) {
-        assert(key,   'set(): requires key');
-        assert(value, 'set(): requires value');
+		const action = 'setKey';
 
-        const action = 'setKey';
+		return this._callMethod(action, {key, value});
+	}
 
-        return this._callMethod(action, { key, value });
-    }
+	async get(key: Key) {
+		assert(key, 'get(): requires key');
 
-    async get (key: Key) {
-        assert(key, 'get(): requires key');
+		const action = 'getKey';
 
-        const action = 'getKey';
+		return this._callMethod(action, {key});
+	}
 
-        return this._callMethod(action, { key });
-    }
+	async delete(key: Key) {
+		assert(key, 'delete(): requires key');
 
-    async delete (key: Key) {
-        assert(key, 'delete(): requires key');
+		const action = 'deleteKey';
 
-        const action = 'deleteKey';
-
-        return this._callMethod(action, { key });
-    }
+		return this._callMethod(action, {key});
+	}
 }
 
 export {
-    RustyKeyClient
-}
+	RustyKeyClient,
+};
 
