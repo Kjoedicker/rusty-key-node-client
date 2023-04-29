@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha --exit -r ts-node/register test/**/*.ts",
+    "test-watch": "nodemon --exec mocha --exit -r ts-node/register test/*.ts",
     "run-client": "nodemon --exec ts-node client.ts"
   },
   "author": "Keifer Joedicker",
