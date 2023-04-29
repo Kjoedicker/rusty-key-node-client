@@ -12,9 +12,9 @@ class RustyKeyClient {
     client: AxiosInstance;
 
     #methods: callMethods = {
-        setKey:    ['POST', '/{key}/{value}'],
-        getKey:    ['GET',  '/{key}'        ],
-        deleteKey: ['POST', '/{key}'        ]
+        setKey:    ['POST',   '/{key}/{value}'],
+        getKey:    ['GET',    '/{key}'        ],
+        deleteKey: ['DELETE', '/{key}'        ]
     }
 
     constructor (
@@ -75,7 +75,7 @@ class RustyKeyClient {
 
         const action = 'setKey';
 
-        return this._callMethod(action, {key, value});
+        return this._callMethod(action, { key, value });
     }
 
     async get (key: string) {
@@ -83,7 +83,15 @@ class RustyKeyClient {
 
         const action = 'getKey';
 
-        return this._callMethod(action, {key});
+        return this._callMethod(action, { key });
+    }
+
+    async delete (key: string) {
+        assert(key, 'delete(): requires key');
+
+        const action = 'deleteKey';
+
+        return this._callMethod(action, { key });
     }
 }
 
