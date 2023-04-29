@@ -43,8 +43,17 @@ class RustyKeyClient {
             const { status, data } = response;
 
             return { status, data };
-        } catch(err) {
-            console.error(`[ERROR] making ${method} to ${url}: ` + JSON.stringify(err))
+        } catch(err: any) {
+            const { status, data } = err?.response || {};
+    
+            switch (status) {
+                case 404: {
+                    return { status, data }
+                }
+                default: {
+                    console.error(`[ERROR] making ${method} to ${url}: ` + JSON.stringify(err))   
+                }
+            }
         }
     }
 
