@@ -5,6 +5,11 @@ import { interpolateStringKey } from './functional-utils';
 type callMethods = {
     [key: string]: string[]
 }
+type Response = {
+    [key: string]: any
+}
+type Value = any;
+type Key = string | number;
 
 class RustyKeyClient {
     baseURL: string;
@@ -29,7 +34,7 @@ class RustyKeyClient {
         });
     }
 
-    async _call(method: string, url: string) {
+    async _call(method: string, url: string): Promise<Response| boolean>{
         assert(method, '_call(): requires method');
         assert(url,    '_call(): requires url');
 
@@ -52,6 +57,7 @@ class RustyKeyClient {
                 }
                 default: {
                     console.error(`[ERROR] making ${method} to ${url}: ` + JSON.stringify(err))   
+                    return false;
                 }
             }
         }
@@ -69,7 +75,7 @@ class RustyKeyClient {
         return this._call(httpMethod, url);
     }
 
-    async set (key: string, value: string) {
+    async set (key: Key, value: Value) {
         assert(key,   'set(): requires key');
         assert(value, 'set(): requires value');
 
@@ -78,7 +84,7 @@ class RustyKeyClient {
         return this._callMethod(action, { key, value });
     }
 
-    async get (key: string) {
+    async get (key: Key) {
         assert(key, 'get(): requires key');
 
         const action = 'getKey';
@@ -86,7 +92,7 @@ class RustyKeyClient {
         return this._callMethod(action, { key });
     }
 
-    async delete (key: string) {
+    async delete (key: Key) {
         assert(key, 'delete(): requires key');
 
         const action = 'deleteKey';
