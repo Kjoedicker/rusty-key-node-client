@@ -17,6 +17,7 @@
     "typescript": "^5.0.4"
   },
   "devDependencies": {
+    "@faker-js/faker": "^7.6.0",
     "@types/node": "^18.16.1",
     "chai": "^4.3.7",
     "mocha": "^10.2.0",
