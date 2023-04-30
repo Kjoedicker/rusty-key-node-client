@@ -13,8 +13,8 @@ class RustyKeyClient {
 	client: AxiosInstance;
 
 	#methods: CallMethods = {
-		setKey: ['POST', '/{key}/{value}'],
-		getKey: ['GET', '/{key}'],
+		setKey:    ['PUT', '/{key}'],
+		getKey:    ['GET', '/{key}'],
 		deleteKey: ['DELETE', '/{key}'],
 	};
 
@@ -30,12 +30,16 @@ class RustyKeyClient {
 		});
 	}
 
-	async _call(method: string, url: string): Promise<Response | boolean> {
-		assert(method, '_call(): requires method');
+	async _call(method: string, url: string, payload?: object): Promise<Response | boolean> {
+        assert(method, '_call(): requires method');
 		assert(url, '_call(): requires url');
 
 		try {
-			const response = await this.client({method, url});
+			const response = await this.client({ 
+                method, 
+                url, 
+                ...(payload ? {data: payload} : {})
+            });
 
 			const { status, data} = response || {};
 
@@ -56,16 +60,17 @@ class RustyKeyClient {
 		}
 	}
 
-	async _callMethod(action: string, values: Record<string, unknown>) {
+	async _callMethod(action: string, key: Key, value?: Value) {
 		assert(action, '_callMethod(): requires action');
-		assert(values, '_callMethod(): requires values');
+		assert(key,    '_callMethod(): requires key');
 
 		const
 			[httpMethod, path] = this.#methods[action],
-		    url = interpolateStringKey(path, values)
+		    url = interpolateStringKey(path, {key}),
+            payload = value ? {value} : undefined
         ;
     
-		return this._call(httpMethod, url);
+		return this._call(httpMethod, url, payload);
 	}
 
 	async set(key: Key, value: Value) {
@@ -74,7 +79,7 @@ class RustyKeyClient {
 
 		const action = 'setKey';
 
-		return this._callMethod(action, {key, value});
+		return this._callMethod(action, key, value);
 	}
 
 	async get(key: Key) {
@@ -82,7 +87,7 @@ class RustyKeyClient {
 
 		const action = 'getKey';
 
-		return this._callMethod(action, {key});
+		return this._callMethod(action, key);
 	}
 
 	async delete(key: Key) {
@@ -90,7 +95,7 @@ class RustyKeyClient {
 
 		const action = 'deleteKey';
 
-		return this._callMethod(action, {key});
+		return this._callMethod(action, key);
 	}
 }
 
