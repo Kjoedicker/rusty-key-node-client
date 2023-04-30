@@ -1,24 +1,42 @@
 // @ts-nocheck
 import { RustyKeyClient } from "../client";
 import { expect } from 'chai';
+import {faker} from '@faker-js/faker';
 
 const Client = new RustyKeyClient();
 
 describe("RustKeyClient", function() {
 
-    const scenarios = [
-        {key: 1, value: 3},
-        {key: 1, value: 2},
-        {key: 1, value: 1},
-        {key: 1000000, value: "someString"},
-        {key: 25, value: JSON.stringify({test: "someJsonBlob"})},
-    ]
+    function buildScenarios() {
+        const dataTypes = [
+            'number', 'float', 'datetime', 
+            'string',  'uuid', 'boolean', 
+            'hexadecimal', 'json',
+            'bigInt'
+        ];
+
+        return dataTypes.map((dataType) => {
+            const fakerValue = faker.datatype[dataType]();
+
+            let value = typeof fakerValue === 'object' ? 
+                JSON.stringify(fakerValue) : 
+                String(fakerValue);
+    
+            return { 
+                type: dataType, 
+                key: `${dataType}-Key`,
+                value 
+            };
+        });
+    }
+
+    const scenarios = buildScenarios();
 
     describe('set()', function() {
     
-        for (const {key, value } of scenarios ) {
+        for (const {type, key, value } of scenarios ) {
 
-            context(`set is called with a key of \`${key}\` and value of \`${value}\``, function() {
+            context(`set() is called for the key \`${key}\` with a value of \`${value}\` that is a ${type}`, function() {
             
                 it('should return a 201 indicating success', async function(){
                     const response = await Client.set(key, value);
@@ -40,11 +58,7 @@ describe("RustKeyClient", function() {
 
                     expect(status).to.equal(200);
 
-                    if (typeof data === 'object') {
-                        expect(JSON.stringify(data)).to.equal(value)
-                    } else {
-                        expect(response.data).to.equal(value);
-                    }
+                    expect(response.data).to.equal(value);
                 })
             })
         }
@@ -78,11 +92,7 @@ describe("RustKeyClient", function() {
 
                     expect(status).to.equal(200);
 
-                    if (typeof data === 'object') {
-                        expect(JSON.stringify(data)).to.equal(value)
-                    } else {
                         expect(response.data).to.equal(value);
-                    }
                 });
             });
         }
